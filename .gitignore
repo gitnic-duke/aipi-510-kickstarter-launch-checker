@@ -1,0 +1,32 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- Data & models: these live in GCS and W&B, never in git ---
+data/
+models/
+*.csv
+*.parquet
+*.joblib
+*.pkl
+wandb/
+mlruns/
+
+# --- Secrets: never commit ---
+.env
+*.json.key
+*-key.json
+service-account*.json
+kaggle.json
+.streamlit/secrets.toml
+
+# --- OS / editor ---
+.DS_Store
+.vscode/
+.idea/
