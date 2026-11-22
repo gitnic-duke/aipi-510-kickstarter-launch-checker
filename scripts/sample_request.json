@@ -1,0 +1,24 @@
+{
+  "instances": [
+    {
+      "main_category": "Games",
+      "category": "Tabletop Games",
+      "goal_usd": 5000,
+      "duration_days": 30,
+      "country": "US",
+      "launch_month": 3,
+      "launch_weekday": 1,
+      "name": "Dungeon Crawl: The Board Game"
+    },
+    {
+      "main_category": "Games",
+      "category": "Tabletop Games",
+      "goal_usd": 50000,
+      "duration_days": 30,
+      "country": "US",
+      "launch_month": 3,
+      "launch_weekday": 1,
+      "name": "Dungeon Crawl: The Board Game"
+    }
+  ]
+}
