@@ -1,0 +1,25 @@
+data:
+  bucket: kickstarter-checker-nw-data
+  raw_path: raw/ks-projects-201801.csv
+  processed_version: v1
+  processed_file: kickstarter.parquet
+
+seed: 42
+
+split:
+  test_size: 0.15   # fraction of all rows
+  val_size: 0.15    # fraction of all rows
+  stratify: true
+
+features:
+  # Column lists live in src/schema.py so the API and pipeline share them.
+  include_leaky: false   # true ONLY for the leakage demo run; never served
+
+model:
+  type: logistic_regression   # logistic_regression | xgboost
+  params:
+    logistic_regression: {C: 1.0, max_iter: 1000}
+    xgboost: {n_estimators: 300, max_depth: 6, learning_rate: 0.1}
+
+tracking:
+  project: kickstarter-launch-checker

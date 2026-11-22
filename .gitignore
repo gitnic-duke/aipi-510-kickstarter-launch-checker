@@ -9,8 +9,8 @@ venv/
 .ipynb_checkpoints/
 
 # --- Data & models: these live in GCS and W&B, never in git ---
-data/
-models/
+/data/
+/models/
 *.csv
 *.parquet
 *.joblib
