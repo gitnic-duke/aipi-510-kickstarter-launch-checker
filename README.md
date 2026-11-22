@@ -56,6 +56,17 @@ cp .env.example .env   # then fill in values
   `/predict` takes a batch (`{"instances": [...]}`, 1 to 100 items) and returns one
   success probability per item, in order. Bad input gets a 422 explaining what's wrong.
 - Run the tests: `pytest`
+- Build and run with Docker (one image, two entry points: `serve` and `train`):
+
+  ```bash
+  docker build -t kickstarter-api .
+  docker run --rm -p 8080:8080 kickstarter-api      # serves the API on port 8080
+  curl -s localhost:8080/health
+  ```
+
+  The model is baked into the image at build time (a placeholder until T15).
+  On Apple Silicon, images for Cloud Run must be built for `linux/amd64`
+  (see the deploy instructions).
 - Deploy to the cloud: _TBD_
 
 ## Repository structure
