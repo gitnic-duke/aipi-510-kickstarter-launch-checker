@@ -1,0 +1,5 @@
+# Streamlit app has its own, smaller dependency set (deployed separately)
+streamlit
+requests
+pandas
+plotly

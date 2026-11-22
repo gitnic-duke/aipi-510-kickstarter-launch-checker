@@ -1,0 +1,14 @@
+fastapi==0.165.0
+google-cloud-storage==3.17.1
+joblib==1.6.0
+kaggle==2.2.5
+numpy==2.4.6
+pandas==3.1.1
+pyarrow==26.0.1
+pydantic==2.14.4
+python-dotenv==1.2.4
+PyYAML==6.0.4
+scikit-learn==1.9.1
+uvicorn[standard]==0.54.0
+wandb==0.31.2
+xgboost==3.2.0
