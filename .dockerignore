@@ -1,0 +1,32 @@
+# Keep the image small and free of secrets: only what the Dockerfile COPYs is needed.
+.git
+.github
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+
+# Data, models and tracking output never go into the build context
+data
+models
+wandb
+mlruns
+*.csv
+*.parquet
+*.joblib
+
+# Secrets
+.env
+*.json.key
+*-key.json
+service-account*.json
+kaggle.json
+.streamlit
+
+# Not needed to run the service
+tests
+frontend
+docs
+*.md
