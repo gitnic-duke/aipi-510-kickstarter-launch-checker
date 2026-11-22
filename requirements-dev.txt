@@ -1,0 +1,5 @@
+# Dev-only tools (not installed in the Docker image)
+-r requirements.txt
+pytest
+ruff
+httpx  # used by FastAPI's TestClient

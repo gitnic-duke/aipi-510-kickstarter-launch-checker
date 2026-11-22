@@ -27,7 +27,7 @@ _TBD_
 | Front-end hosting | Streamlit Community Cloud |
 
 ## Setup
-Requires Python 3.11. On macOS, XGBoost also needs OpenMP: `brew install libomp`.
+Requires **Python 3.11** (any 3.11.x; other versions may fail to install the pinned packages). On macOS, XGBoost also needs OpenMP: `brew install libomp`.
 
 ```bash
 python3.11 -m venv .venv

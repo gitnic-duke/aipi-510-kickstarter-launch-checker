@@ -1,0 +1,28 @@
+# Direct dependencies, unpinned (edit this file, not requirements.txt).
+# requirements.txt pins ONLY these packages to exact versions; their
+# sub-dependencies are left free so installs work across macOS and Linux.
+# Regenerate after any change (Python 3.11, inside the venv):
+#   pip install -r requirements.in
+#   pip freeze | grep -iE '^(pandas|pyarrow|numpy|pyyaml|google-cloud-storage|kaggle|scikit-learn|xgboost|joblib|wandb|fastapi|uvicorn|pydantic|python-dotenv)==' > requirements.txt
+#   sed -i '' 's/^uvicorn==/uvicorn[standard]==/' requirements.txt   # macOS sed; on Linux drop the ''
+# If you add a package here, add its name to the grep list too.
+
+# data
+pandas
+pyarrow
+numpy
+pyyaml
+google-cloud-storage
+kaggle
+
+# modeling + tracking
+scikit-learn
+xgboost
+joblib
+wandb
+
+# serving
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
