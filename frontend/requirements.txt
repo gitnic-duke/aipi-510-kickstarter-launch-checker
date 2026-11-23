@@ -1,5 +1,6 @@
-# Streamlit app has its own, smaller dependency set (deployed separately)
-streamlit
-requests
-pandas
-plotly
+# Streamlit app dependencies (deployed separately from the API; no pandas/sklearn needed).
+# Pin after installing: pip install -r frontend/requirements.txt, then pin these three
+# with the versions from `pip freeze` (same approach as the root requirements).
+plotly==7.1.0
+requests==2.34.2
+streamlit==1.67.0
