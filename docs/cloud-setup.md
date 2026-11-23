@@ -13,7 +13,7 @@ by the project owner; partners only need the "For partners" section.
 | Artifact Registry repo | `kickstarter` | Docker images for the API |
 | Service account | `kickstarter-api` | Identity the Cloud Run API runs as. Can only write logs |
 | Budget alert | $10/month | Email at 50%, 90%, 100% |
-| W&B project | `kickstarter-launch-checker` | Experiment tracking and model artifacts |
+| W&B project | `kickstarter-launch-checker` | Experiment tracking and model artifacts (set up by Partner A in T12) |
 
 ## 1. Google Cloud account and billing (console, ~10 min)
 
@@ -74,7 +74,7 @@ gcloud storage cat gs://kickstarter-checker-nw-data/tmp/hello.txt
 
 ## 5. Weights & Biases
 
-Owned by Partner A (who runs training).
+Owned by Partner A as the first step of task T12 (Monday), since A runs training. Not needed before then.
 
 1. Sign in at https://wandb.ai (GitHub login works).
 2. Create the project `kickstarter-launch-checker` under a team both partners
