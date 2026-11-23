@@ -56,6 +56,13 @@ cp .env.example .env   # then fill in values
   `/predict` takes a batch (`{"instances": [...]}`, 1 to 100 items) and returns one
   success probability per item, in order. Bad input gets a 422 explaining what's wrong.
 - Run the tests: `pytest`
+- Run the front-end locally (Streamlit; calls the deployed API by default):
+
+  ```bash
+  pip install -r frontend/requirements.txt
+  streamlit run frontend/app.py
+  # point it at a local API instead: API_URL=http://localhost:8000 streamlit run frontend/app.py
+  ```
 - Build and run with Docker (one image, two entry points: `serve` and `train`):
 
   ```bash
