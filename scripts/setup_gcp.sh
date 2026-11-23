@@ -56,9 +56,14 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 
 for EMAIL in "${PARTNER_EMAILS[@]}"; do
   [ -z "$EMAIL" ] && continue
-  echo "==> Granting $EMAIL access (project viewer + read/write on the data bucket)"
+  echo "==> Granting $EMAIL access (viewer, service usage consumer, read/write on the data bucket)"
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="user:$EMAIL" --role="roles/viewer" --condition=None >/dev/null
+  # Needed because Application Default Credentials bill API calls to this
+  # project (its "quota project"), which requires serviceusage.services.use.
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="user:$EMAIL" --role="roles/serviceusage.serviceUsageConsumer" \
+    --condition=None >/dev/null
   gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
     --member="user:$EMAIL" --role="roles/storage.objectAdmin" >/dev/null
 done

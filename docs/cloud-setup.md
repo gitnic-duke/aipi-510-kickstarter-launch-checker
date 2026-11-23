@@ -94,6 +94,11 @@ gcloud config set project kickstarter-checker-nw
 gcloud storage ls gs://kickstarter-checker-nw-data    # should succeed
 ```
 
+If Python code fails with a `serviceusage.services.use` permission error, the
+owner needs to re-run `./scripts/setup_gcp.sh` with your email in
+`PARTNER_EMAILS` (it grants the Service Usage Consumer role). Wait a minute or
+two for the change to take effect, then retry.
+
 ## Security and cost notes
 
 - Bucket is private (public access prevention enforced) and uses uniform
@@ -101,7 +106,8 @@ gcloud storage ls gs://kickstarter-checker-nw-data    # should succeed
 - No service-account keys exist; local access uses each person's own login.
 - The Cloud Run API runs as `kickstarter-api`, not the default compute
   service account (which has broad Editor rights).
-- Partners get project Viewer plus read/write on the data bucket only.
+- Partners get project Viewer, Service Usage Consumer (required because local
+  credentials bill API calls to this project) and read/write on the data bucket only.
 - Cloud Run scales to zero when idle, so cost stays near $0; the budget alert
   catches surprises.
 
