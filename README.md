@@ -38,7 +38,24 @@ cp .env.example .env   # then fill in values
 
 ## Usage
 - Train the model: _TBD_
-- Run the API locally: _TBD_
+- Run the API locally:
+
+  ```bash
+  python -m scripts.make_dummy_model          # placeholder model -> models/model.joblib (until T15)
+  uvicorn src.api.main:app --reload --port 8000
+  ```
+
+  Then open http://localhost:8000/docs for interactive docs, or use curl:
+
+  ```bash
+  curl -s localhost:8000/health
+  curl -s -X POST localhost:8000/predict \
+    -H "Content-Type: application/json" -d @scripts/sample_request.json
+  ```
+
+  `/predict` takes a batch (`{"instances": [...]}`, 1 to 100 items) and returns one
+  success probability per item, in order. Bad input gets a 422 explaining what's wrong.
+- Run the tests: `pytest`
 - Deploy to the cloud: _TBD_
 
 ## Repository structure
