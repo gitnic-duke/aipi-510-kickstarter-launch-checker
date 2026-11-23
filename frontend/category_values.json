@@ -1,0 +1,23 @@
+{
+  "_note": "Starter list. Replace with processed/v1/category_values.json from T5: gcloud storage cp gs://kickstarter-checker-nw-data/processed/v1/category_values.json frontend/category_values.json",
+  "main_category": ["Art", "Comics", "Crafts", "Dance", "Design", "Fashion", "Film & Video", "Food", "Games", "Journalism", "Music", "Photography", "Publishing", "Technology", "Theater"],
+  "category": [],
+  "country": ["AT", "AU", "BE", "CA", "CH", "DE", "DK", "ES", "FR", "GB", "HK", "IE", "IT", "JP", "LU", "MX", "NL", "NO", "NZ", "SE", "SG", "US"],
+  "categories_by_main": {
+    "Art": ["Art", "Illustration", "Mixed Media", "Painting", "Public Art", "Sculpture"],
+    "Comics": ["Comic Books", "Comics", "Graphic Novels", "Webcomics"],
+    "Crafts": ["Crafts", "DIY", "Knitting", "Pottery", "Woodworking"],
+    "Dance": ["Dance", "Performances", "Workshops"],
+    "Design": ["Architecture", "Design", "Graphic Design", "Product Design"],
+    "Fashion": ["Accessories", "Apparel", "Fashion", "Footwear", "Jewelry"],
+    "Film & Video": ["Animation", "Documentary", "Film & Video", "Narrative Film", "Shorts", "Webseries"],
+    "Food": ["Drinks", "Food", "Food Trucks", "Restaurants"],
+    "Games": ["Games", "Mobile Games", "Playing Cards", "Tabletop Games", "Video Games"],
+    "Journalism": ["Journalism", "Print", "Video", "Web"],
+    "Music": ["Country & Folk", "Electronic Music", "Hip-Hop", "Indie Rock", "Jazz", "Music", "Pop", "Rock"],
+    "Photography": ["Fine Art", "Photobooks", "Photography"],
+    "Publishing": ["Children's Books", "Fiction", "Nonfiction", "Poetry", "Publishing"],
+    "Technology": ["Apps", "Gadgets", "Hardware", "Software", "Technology", "Web", "Wearables"],
+    "Theater": ["Musical", "Plays", "Theater"]
+  }
+}
