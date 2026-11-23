@@ -6,7 +6,7 @@ length and category change the odds.
 
 > **Status:** in progress — Module Project 3 (Data/ML Engineering), AIPI 510.
 
-**Live app:** _TBD_ · **API:** _TBD_
+**Live app:** _TBD_ · **API:** https://kickstarter-api-zcqiii5fia-ue.a.run.app ([interactive docs](https://kickstarter-api-zcqiii5fia-ue.a.run.app/docs))
 
 ## Project overview and goals
 _TBD_
@@ -67,7 +67,7 @@ cp .env.example .env   # then fill in values
   The model is baked into the image at build time (a placeholder until T15).
   On Apple Silicon, images for Cloud Run must be built for `linux/amd64`
   (see the deploy instructions).
-- Deploy to the cloud: _TBD_
+- Deploy to the cloud: `./scripts/deploy_api.sh` (builds with Cloud Build, deploys to Cloud Run). See [docs/deploy.md](docs/deploy.md).
 
 ## Repository structure
 ```
