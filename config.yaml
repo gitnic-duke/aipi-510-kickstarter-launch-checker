@@ -3,6 +3,7 @@ data:
   raw_path: raw/ks-projects-201801.csv
   processed_version: v1
   processed_file: kickstarter.parquet
+  min_rows: 250000   # data quality check: fail if cleaning drops too much
 
 seed: 42
 
