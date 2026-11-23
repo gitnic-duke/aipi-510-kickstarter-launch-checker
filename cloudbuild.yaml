@@ -1,0 +1,19 @@
+# Cloud Build config (task T10): builds the API image on Google's servers
+# (linux/amd64, what Cloud Run runs) and pushes it to Artifact Registry.
+# Used by scripts/deploy_api.sh; substitutions are passed in from there.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - MODEL_VERSION=${_MODEL_VERSION}
+      - -t
+      - ${_IMAGE}
+      - .
+images:
+  - ${_IMAGE}
+substitutions:
+  _IMAGE: ""
+  _MODEL_VERSION: placeholder-v0
+options:
+  logging: CLOUD_LOGGING_ONLY
