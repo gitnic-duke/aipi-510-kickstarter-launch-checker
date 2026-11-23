@@ -6,7 +6,7 @@ length and category change the odds.
 
 > **Status:** in progress — Module Project 3 (Data/ML Engineering), AIPI 510.
 
-**Live app:** _TBD_ · **API:** _TBD_
+**Live app:** _TBD_ · **API:** https://kickstarter-api-zcqiii5fia-ue.a.run.app ([interactive docs](https://kickstarter-api-zcqiii5fia-ue.a.run.app/docs))
 
 ## Project overview and goals
 _TBD_
