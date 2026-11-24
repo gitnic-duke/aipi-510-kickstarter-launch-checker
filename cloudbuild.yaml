@@ -1,7 +1,19 @@
-# Cloud Build config (task T10): builds the API image on Google's servers
-# (linux/amd64, what Cloud Run runs) and pushes it to Artifact Registry.
-# Used by scripts/deploy_api.sh; substitutions are passed in from there.
+# Cloud Build config (tasks T10, T15): downloads the production model from GCS,
+# builds the API image on Google's servers (linux/amd64, what Cloud Run runs)
+# and pushes it to Artifact Registry. Used by scripts/deploy_api.sh, which
+# passes the substitutions in.
 steps:
+  # 1. Fetch the production model into the build context (skipped if no URI).
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        if [ -n "${_MODEL_URI}" ]; then
+          mkdir -p model-artifact
+          gcloud storage cp "${_MODEL_URI}" model-artifact/model.joblib
+        fi
+  # 2. Build the image; the Dockerfile bakes model-artifact/model.joblib in.
   - name: gcr.io/cloud-builders/docker
     args:
       - build
@@ -14,6 +26,7 @@ images:
   - ${_IMAGE}
 substitutions:
   _IMAGE: ""
+  _MODEL_URI: ""
   _MODEL_VERSION: placeholder-v0
 options:
   logging: CLOUD_LOGGING_ONLY
