@@ -24,3 +24,4 @@ model:
 
 tracking:
   project: kickstarter-launch-checker
+  entity: mihirk9   # set to your W&B team name
