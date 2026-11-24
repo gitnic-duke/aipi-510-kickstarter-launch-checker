@@ -6,7 +6,9 @@ length and category change the odds.
 
 > **Status:** in progress — Module Project 3 (Data/ML Engineering), AIPI 510.
 
-**Live app:** _TBD_ · **API:** https://kickstarter-api-zcqiii5fia-ue.a.run.app ([interactive docs](https://kickstarter-api-zcqiii5fia-ue.a.run.app/docs))
+**Live app:** https://aipi-510-kickstarter-launch-checker.streamlit.app · **API:** https://kickstarter-api-zcqiii5fia-ue.a.run.app ([interactive docs](https://kickstarter-api-zcqiii5fia-ue.a.run.app/docs))
+
+> Both services sleep when idle, so the first visit can take up to ~30 seconds to wake up. If the app says the API is waking up, wait a moment and try again.
 
 ## Project overview and goals
 _TBD_
@@ -71,7 +73,8 @@ cp .env.example .env   # then fill in values
   curl -s localhost:8080/health
   ```
 
-  The model is baked into the image at build time (a placeholder until T15).
+  A plain local build uses the placeholder model; deployed images have the
+  production model baked in (see [docs/deploy.md](docs/deploy.md#updating-the-model-task-t15)).
   On Apple Silicon, images for Cloud Run must be built for `linux/amd64`
   (see the deploy instructions).
 - Deploy to the cloud: `./scripts/deploy_api.sh` (builds with Cloud Build, deploys to Cloud Run). See [docs/deploy.md](docs/deploy.md).
