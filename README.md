@@ -34,15 +34,28 @@ with experiment tracking, containers, CI and reviewed pull requests throughout.
 ## Architecture
 
 ```mermaid
-flowchart LR
-    K["Kaggle CSV"] -->|"extract.py"| R[("GCS raw/")]
-    R -->|"transform.py: clean + validate"| P[("GCS processed/v1/")]
-    P -->|"ingest.py"| T["train.py + config.yaml"]
-    T -->|"metrics, plots, model"| W["Weights & Biases"]
-    W -->|"production model"| M[("GCS models/v1/")]
-    M -->|"Cloud Build bakes model into image"| A["FastAPI on Cloud Run"]
-    F["Streamlit app"] -->|"POST /predict"| A
-    U["User"] --> F
+flowchart TD
+    K["Kaggle CSV"]
+    subgraph data ["Data · GCS bucket"]
+        R[("raw/")]
+        P[("processed/v1/")]
+    end
+    subgraph training ["Training"]
+        T["train.py + config.yaml"]
+        W["Weights & Biases"]
+    end
+    subgraph serving ["Serving"]
+        M[("GCS models/v1/")]
+        A["FastAPI on Cloud Run"]
+        F["Streamlit app"]
+    end
+    K -->|"extract.py"| R
+    R -->|"transform.py: clean + validate"| P
+    P -->|"ingest.py"| T
+    T -->|"metrics, plots, model"| W
+    W -->|"production model"| M
+    M -->|"Cloud Build bakes it into the image"| A
+    F -->|"POST /predict"| A
 ```
 
 1. **Data:** the raw Kaggle CSV is stored untouched in `raw/`. A transform
