@@ -88,10 +88,56 @@ Design decisions:
 [Kickstarter Projects](https://www.kaggle.com/datasets/kemical/kickstarter-projects) (Kaggle),
 about 380k campaigns launched 2009 to 2018.
 
-> **TODO (Mihir):** columns kept and why · cleaning rules (states kept, invalid
-> dates/countries dropped, ...) · final row count and success rate from
-> `processed/v1/_meta.json` · how leaky post-launch columns are handled · the
-> data quality checks.
+**Task:** binary classification. The target `success` is 1 if a campaign's
+final state is `successful` and 0 if `failed`. **Metric:** ROC-AUC, which is
+threshold-free and robust to the 40/60 class balance; log loss, Brier score,
+accuracy, precision, recall and F1 are also logged.
+
+**Pipeline** (`src/data/`): `extract.py` uploads the Kaggle file
+`ks-projects-201801.csv` unchanged to `raw/` (never overwritten);
+`transform.py` cleans and validates it and publishes `processed/v1/`;
+`ingest.py` loads a processed version for training, chosen by
+`data.processed_version` in `config.yaml`. Processed versions are never
+overwritten: new cleaning logic means a new version.
+
+**Columns kept**
+
+| Column | Source | Why |
+| --- | --- | --- |
+| `main_category`, `category`, `country` | as-is | known at launch |
+| `goal_usd` | `usd_goal_real` | goal converted to USD, so campaigns are comparable across currencies |
+| `duration_days` | `deadline` minus `launched` | campaign length, chosen by the creator |
+| `launch_month`, `launch_weekday` | `launched` | timing, chosen by the creator |
+| `name` | as-is | title; the model uses derived title features |
+| `success` | `state` | target |
+| `backers`, `pledged_usd` | `backers`, `usd_pledged_real` | **leaky**, kept only for the leakage demo |
+
+Dropped: the ID, the original-currency `goal`, `pledged` and `usd pledged`
+columns (duplicates of the USD versions), and `currency` (implied by country).
+
+**Cleaning rules**
+- Keep only campaigns with a final outcome: `successful` or `failed`. Drop
+  `canceled`, `live`, `suspended` and `undefined`.
+- Drop rows with placeholder launch dates (1970) or other dates before
+  Kickstarter's 2009 launch, malformed country codes (e.g. `N,0"`), missing or
+  empty titles, a goal of zero, or a duration outside 1 to 92 days. 213 rows
+  are dropped this way.
+
+**Result** (`processed/v1/_meta.json`): **331,462 campaigns, 40.4% successful.**
+
+**Leaky columns.** `backers` and `pledged_usd` are only known after a campaign
+ends, so they give the answer away. They stay in the processed data so the
+leakage demo can use them, but training drops them unless
+`features.include_leaky: true`, the API schema can't accept them, and
+`--promote` refuses any model trained with them.
+
+**Data quality checks** run before anything is published, and the pipeline
+stops with a list of every failure: expected columns, at least 250,000 rows
+(`data.min_rows`), no nulls, valid ranges (goal > 0, duration 1 to 92, month
+1 to 12, weekday 0 to 6, non-negative backers and pledged amounts), a binary
+target with both classes present. `transform.py` also writes
+`category_values.json`, the valid categories and countries that the front-end
+dropdowns use.
 
 ## Model and evaluation
 
@@ -105,16 +151,77 @@ The production model was selected on validation ROC-AUC; the test set was used
 only to report the final number. The leakage demo shows that post-launch
 columns give the answer away, which is why they're excluded from the served model.
 
-> **TODO (Mihir):** feature engineering (one-hot categories/month/weekday, log
-> goal, title features) · model settings · W&B screenshots in `docs/images/` ·
-> link to the W&B project if it's public.
+**Feature engineering** (`src/features.py`). Features are built inside one
+scikit-learn `Pipeline` that is saved with the model, so the API sends the
+same 8 raw columns and gets identical features (no training/serving skew):
+- one-hot encoding of `main_category`, `category`, `country`,
+  `launch_month` and `launch_weekday` (month and weekday are labels, not
+  quantities); unseen values are ignored instead of crashing the API
+- `goal_usd`: log-transformed, then standardized, because goals are heavily skewed
+- `duration_days`: standardized
+- title: character length, word count, and whether it contains a digit
+
+**Split.** Stratified 70% train / 15% validation / 15% test with seed 42, all
+set in `config.yaml`. Models were compared on validation; test was used once.
+
+**Model settings** (`config.yaml`)
+
+| Model | Settings |
+| --- | --- |
+| Logistic regression | `C=1.0`, `max_iter=1000` |
+| XGBoost | `n_estimators=300`, `max_depth=6`, `learning_rate=0.1`, `tree_method=hist` |
+
+**Experiment tracking.** Each run logs its config, the data version and
+metadata, the git commit, train/val/test metrics, a ROC curve, a confusion
+matrix, and the trained `Pipeline` as a versioned `kickstarter-model`
+artifact. Aliases mark its role: `production` for the served model (v1),
+`leaky-do-not-deploy` for the demo. The W&B project is private, so here are
+the dashboards:
+
+![W&B runs: validation and test ROC-AUC for each run](docs/images/wandb-runs.png)
+
+![W&B workspace: ROC curves, confusion matrices and metrics for all three runs](docs/images/wandb-workspace.png)
 
 ### How to train
 
-> **TODO (Mihir):** `wandb login` · `python -m src.train` · `--promote` and
-> `--no-wandb` · the experiment switches in `config.yaml` (`model.type`,
-> `features.include_leaky`) · publishing the production model to
-> `gs://kickstarter-checker-nw-data/models/<version>/`.
+Training reads `processed/<version>/` from the bucket, so it needs bucket
+access (`gcloud auth application-default login`) and a W&B account. We trained
+in Google Cloud Shell, with the pinned `requirements.txt`.
+
+```bash
+wandb login                     # paste your API key
+python -m src.train             # train with config.yaml, evaluate, log to W&B
+python -m src.train --promote   # same, and tag the model `production` (refused for leaky runs)
+python -m src.train --no-wandb  # quick run without W&B logging
+```
+
+Experiments are switched in `config.yaml`, never in code:
+- `model.type`: `logistic_regression` or `xgboost` (settings under `model.params`)
+- `features.include_leaky`: `true` only for the leakage demo
+- `data.processed_version`, `split.*` and `seed`: which data and how it's split
+
+The three runs above were reproduced with:
+
+```bash
+python -m src.train                                                  # baseline
+sed -i 's/type: logistic_regression /type: xgboost /' config.yaml
+python -m src.train --promote                                        # production
+sed -i 's/include_leaky: false/include_leaky: true/' config.yaml
+python -m src.train                                                  # leakage demo
+git checkout config.yaml
+```
+
+**Publish the production model** for the API: download it from the W&B
+registry by alias (not from the local `models/` folder) and copy it to the
+bucket, where the image build picks it up:
+
+```bash
+wandb artifact get mihirk9/kickstarter-launch-checker/kickstarter-model:production --root /tmp/prod
+gcloud storage cp /tmp/prod/model.joblib gs://kickstarter-checker-nw-data/models/v1/model.joblib
+```
+
+Use a new `models/<version>/` folder for each new production model, then
+redeploy (see [docs/deploy.md](docs/deploy.md#updating-the-model-task-t15)).
 
 ## Cloud services
 
@@ -235,8 +342,31 @@ troubleshooting: [docs/deploy.md](docs/deploy.md).
 
 ## Monitoring
 
-> **TODO (Mihir, T17):** what the API logs for each prediction and how to view
-> it (`gcloud run services logs read kickstarter-api --region us-east1`).
+Every `/predict` call writes one structured JSON line per prediction to
+stdout (`src/api/prediction_log.py`). Cloud Run sends stdout to Cloud
+Logging, which parses each line as a structured record:
+
+| Field | Meaning |
+| --- | --- |
+| `event` | always `prediction` (for filtering) |
+| `request_id`, `batch_index`, `batch_size` | groups predictions from the same request (e.g. one what-if chart) |
+| `timestamp` | UTC time of the prediction |
+| `model_version` | which model answered (e.g. `v1`) |
+| `probability` | predicted P(success) |
+| `inputs` | the launch-day inputs, with the title replaced by `name_length` |
+
+Titles are never logged, only their length, so free text typed by users
+stays out of the logs. Logging can't break a prediction: errors are caught.
+These records are the input for the drift check under Future work: comparing
+live input distributions with the 2009 to 2018 training data.
+
+View recent predictions:
+
+```bash
+gcloud run services logs read kickstarter-api --region us-east1 --limit 20
+# structured records only:
+gcloud logging read 'jsonPayload.event="prediction"' --project kickstarter-checker-nw --limit 20 --format json
+```
 
 ## Limitations and ethics
 
@@ -260,13 +390,14 @@ troubleshooting: [docs/deploy.md](docs/deploy.md).
 - **Leakage.** A model using post-launch data scored a "perfect" 1.0. We
   excluded those columns, which is why the honest model scores about 0.75.
 - **Privacy and security.** The data is public campaign metadata with no
-  personal information. The API is public and unauthenticated; batches are
+  personal information. Prediction logs keep the launch-day inputs but not the
+  campaign title, only its length. The API is public and unauthenticated; batches are
   capped at 100 items and the service at 2 instances to limit abuse and cost,
   but there is no rate limiting.
 
 ### Future work
 
-- Prediction logging and drift monitoring (e.g. Population Stability Index on live inputs)
+- Drift monitoring on the logged predictions (e.g. Population Stability Index on live inputs vs. training data)
 - Separate serving dependencies from training ones for a smaller API image
 - Text features from the title and description (e.g. TF-IDF)
 - A time-based train/test split to measure performance on newer campaigns
@@ -310,9 +441,9 @@ cloudbuild.yaml       Cloud Build: fetch model, build image
 
 ## Team
 
-- **Mihir** (`mihirkos9`): data pipeline, training, experiment tracking
+- **Mihir Kosuri** (`mihirkos9`): data pipeline, training, experiment tracking, prediction logging
 - **Nick** (`gitnic-duke`): API, Docker, CI, cloud deployment, front-end
 
-> **TODO:** full names.
+> **TODO (Nick):** full name.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, commit and PR workflow.
