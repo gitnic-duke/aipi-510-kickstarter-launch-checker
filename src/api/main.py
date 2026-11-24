@@ -20,6 +20,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 
+from src.api.prediction_log import log_predictions
 from src.schema import FEATURES, LaunchInput, PredictRequest, PredictResponse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -82,8 +83,9 @@ def predict(request: PredictRequest) -> PredictResponse:
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
     features = to_frame(request.instances)
-    probabilities = model.predict_proba(features)[:, 1]
+    probabilities = [float(p) for p in model.predict_proba(features)[:, 1]]
+    log_predictions(request.instances, probabilities, app.state.model_version)  # T17
     return PredictResponse(
-        probabilities=[float(p) for p in probabilities],
+        probabilities=probabilities,
         model_version=app.state.model_version,
     )
