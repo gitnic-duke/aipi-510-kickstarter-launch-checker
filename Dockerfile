@@ -2,6 +2,8 @@
 #   docker build -t kickstarter-api .
 #   docker run --rm -p 8080:8080 kickstarter-api           # serve (default)
 #   docker run --rm kickstarter-api train                  # train (from T11 on)
+# The production model is added by Cloud Build (see cloudbuild.yaml and docs/deploy.md);
+# a plain local build uses the placeholder model.
 FROM python:3.11-slim
 
 # Unbuffered output so logs reach Cloud Run immediately; no .pyc clutter.
@@ -29,10 +31,27 @@ COPY src/ src/
 COPY scripts/ scripts/
 COPY config.yaml docker-entrypoint.sh ./
 
-# Model baked into the image at build time. Until T15 this is the placeholder;
-# T15 replaces this step with downloading the `production` model from W&B.
+# Model baked into the image at build time (task T15).
+# Cloud Build first downloads the production model from GCS into
+# model-artifact/ (see cloudbuild.yaml). Builds without it (CI, plain local
+# builds) fall back to the placeholder. The [t] glob makes the folder optional:
+# COPY still succeeds when model-artifact/ doesn't exist.
 ARG MODEL_VERSION=placeholder-v0
-RUN python -m scripts.make_dummy_model --out models/model.joblib
+COPY docker-entrypoint.sh model-artifac[t] /tmp/model-in/
+RUN mkdir -p models \
+    && if [ -f /tmp/model-in/model.joblib ]; then \
+         if [ "$MODEL_VERSION" = "placeholder-v0" ]; then \
+           echo "model-artifact/model.joblib found: pass --build-arg MODEL_VERSION=<version>" >&2; \
+           exit 1; \
+         fi; \
+         mv /tmp/model-in/model.joblib models/model.joblib; \
+       elif [ "$MODEL_VERSION" = "placeholder-v0" ]; then \
+         python -m scripts.make_dummy_model --out models/model.joblib; \
+       else \
+         echo "MODEL_VERSION=$MODEL_VERSION but no model-artifact/model.joblib to bake in" >&2; \
+         exit 1; \
+       fi \
+    && rm -rf /tmp/model-in
 ENV MODEL_PATH=/app/models/model.joblib \
     MODEL_VERSION=${MODEL_VERSION}
 

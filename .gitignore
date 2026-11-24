@@ -11,6 +11,7 @@ venv/
 # --- Data & models: these live in GCS and W&B, never in git ---
 /data/
 /models/
+/model-artifact/
 *.csv
 *.parquet
 *.joblib

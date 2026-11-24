@@ -16,6 +16,8 @@ mlruns
 *.csv
 *.parquet
 *.joblib
+# ...except the production model Cloud Build downloads (task T15)
+!model-artifact/model.joblib
 
 # Secrets
 .env
